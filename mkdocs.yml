@@ -1,0 +1,26 @@
+site_name: distparser
+site_description: Parse function-call strings into frozen scipy.stats distributions
+site_url: https://distparser.readthedocs.io/
+repo_url: https://github.com/njuyoung35/distparser
+edit_uri: edit/main/docs/
+
+theme:
+  name: readthedocs
+  highlightjs: true
+  hljs_languages:
+    - python
+    - bash
+
+nav:
+  - Home: index.md
+  - User Guide: user_guide.md
+  - API Reference: api_reference.md
+  - Releasing: releasing.md
+  - Development: development.md
+
+markdown_extensions:
+  - toc:
+      permalink: true
+  - admonition
+  - codehilite
+  - pymdownx.superfences

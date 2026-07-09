@@ -1,0 +1,72 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "distparser"
+version = "0.1.0"
+description = "Parse function-call strings into frozen scipy.stats distributions"
+readme = "README.md"
+license = {text = "MIT"}
+authors = [{name = "Juyoung Choi", email = "njuyoung35@gmail.com"}]
+maintainers = [{name = "Juyoung Choi", email = "njuyoung35@gmail.com"}]
+keywords = ["scipy", "distribution", "parsing", "rvs"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Intended Audience :: Science/Research",
+]
+requires-python = ">=3.8"
+dependencies = [
+    "scipy>=1.7.0",
+    "numpy>=1.21.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/njuyoung35/distparser"
+Repository = "https://github.com/njuyoung35/distparser"
+Documentation = "https://distparser.readthedocs.io"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-cov",
+    "ruff",
+    "mypy",
+    "build",
+    "twine",
+]
+docs = [
+    "mkdocs>=1.5.0",
+    "mkdocs-rtd-theme>=2.0.0",
+    "pymdown-extensions>=10.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+testpaths = ["tests"]
+addopts = "-v --cov=src/distparser --cov-report=term-missing"
+
+[tool.mypy]
+python_version = "3.8"
+strict = true
+warn_return_any = true
+warn_unused_configs = true
+ignore_missing_imports = true
+
+[tool.ruff]
+line-length = 88
+target-version = "py38"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
