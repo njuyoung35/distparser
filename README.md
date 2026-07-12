@@ -1,17 +1,11 @@
 # distparser
 
-**Parse function‑call syntax strings into frozen `scipy.stats` distributions**
+**Parse function‑call strings into frozen `scipy.stats` distributions —**
+**with dependency resolution, arithmetic expressions, and seed management.**
 
 [![PyPI version](https://badge.fury.io/py/distparser.svg)](https://badge.fury.io/py/distparser)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-
-## Why `distparser`?
-
-When you have configuration files or user input that specifies a probability
-distribution (e.g. `"norm(loc=0, scale=1)"`), you want to turn that string
-into a ready‑to‑sample object. `distparser` does exactly that, with a tiny
-API and zero surprises.
 
 ## Installation
 
@@ -21,42 +15,47 @@ pip install distparser
 
 ## Quick Start
 
-```
-from distparser import parse_dist
+```python
+import distparser as lib
 
-# Positional arguments (order matters)
-dist = parse_dist("uniform(0, 1)")
-sample = dist.rvs()          # e.g. 0.374
-
-# Keyword arguments (order ignored)
-dist = parse_dist("norm(loc=0, scale=1)")
-samples = dist.rvs(size=5)   # array([-0.12, 1.03, ...])
-
-# Mixed (positional + keyword) – works, but not recommended
-dist = parse_dist("expon(scale=2, loc=1)")
+# Parse a single distribution string
+d = lib.parse_dist("norm(loc=0, scale=1)")
+print(d.rvs(size=3))  # array([...])
 ```
 
-## Supported Distributions
-
-Built‑in registry covers the most common continuous distributions:
-
-- `uniform(loc, scale)`
-- `norm(loc, scale)`
-- `expon(loc, scale)`
-- … and many more (see [docs](https://distparser.readthedocs.io)).
-
-You can **add your own** at runtime:
+## DistGraph — dependency-aware evaluation
 
 ```python
-from distparser import register_distribution
-from scipy.stats import gumbel_r
+from distparser import DistGraph
 
-register_distribution("gumbel", gumbel_r, ["loc", "scale"])
+config = {
+    "mean": 5.0,
+    "noise": "norm(0, 0.1)",
+    "measurement": "mean + noise",
+}
+
+graph = DistGraph(config, seed=42)
+result = graph.resolve_all()
+print(result["measurement"])  # 5.0 + sample from N(0, 0.1)
 ```
+
+## Features
+
+- **15 built-in distributions** — `uniform`, `norm`, `expon`, `gamma`, `beta`, `lognorm`, `weibull_min`, `t`, `chi2`, `f`, `pareto`, `cauchy`, `laplace`, `logistic`, `rayleigh`
+- **Distribution aliases** — `normal` → `norm`, `gaussian` → `norm`, `unif` → `uniform`
+- **DistGraph** — automatic dependency resolution via topological sort
+- **Arithmetic expressions** — `"60 + 30 * uniform(0, 1)"` with `sin`, `cos`, `exp`, `sqrt`, `pi` and more
+- **Seed management** — global `seed()`, context manager `seed_context()`, per-instance `DistGraph(seed=...)`
+- **Bounds constraints** — annotate parameters with physical limits for downstream validation
+- **Extensible registry** — register custom distributions at runtime
+
+## Docs
+
+Full documentation at [distparser.readthedocs.io](https://distparser.readthedocs.io).
 
 ## Development
 
-See [AGENTS.md](AGENTS.md) for development setup and guidelines.
+See [AGENTS.md](https://github.com/njuyoung35/distparser/blob/main/AGENTS.md) for setup and guidelines.
 
 ## License
 

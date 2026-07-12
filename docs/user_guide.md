@@ -73,3 +73,81 @@ try:
 except ParseError as e:
     print(f"Parse: {e}")    # Parse: Cannot parse 'not valid'. Expected format: 'name(args)'.
 ```
+
+## DistGraph — dependency-aware evaluation
+
+`DistGraph` accepts a flat dictionary of keys and expressions. It automatically
+detects cross‑references, resolves evaluation order via topological sort, and
+injects resolved values into subsequent expressions.
+
+```python
+from distparser import DistGraph
+
+config = {
+    "offset": 10,
+    "scale": "uniform(1, 3)",
+    "point": "offset + scale * norm(0, 1)",
+}
+
+graph = DistGraph(config, seed=42)
+result = graph.resolve_all()
+print(result["point"])
+```
+
+Non‑string values (numbers, lists) pass through unchanged. Circular
+dependencies raise a `ParseError`.
+
+## Distribution Aliases
+
+Common shorthands are built in:
+
+| Alias | Canonical |
+|---|---|
+| `normal` | `norm` |
+| `gaussian` | `norm` |
+| `unif` | `uniform` |
+
+```python
+from distparser import parse_dist
+
+d = parse_dist("normal(loc=0, scale=1)")  # resolves to norm
+```
+
+## Seed Management
+
+Three levels of RNG control:
+
+```python
+from distparser import seed, seed_context, DistGraph
+
+# Global seed
+seed(42)
+
+# Context manager (temporary override)
+with seed_context(99):
+    g = DistGraph({"x": "uniform(0, 1)"})
+
+# Per-instance seed (highest priority)
+g = DistGraph({"x": "uniform(0, 1)"}, seed=123)
+```
+
+Priority: per‑instance > context manager > global.
+
+## Bounds Constraints
+
+Annotate distribution parameters with physical limits:
+
+```python
+config = {
+    "wall_thickness": {
+        "dist": "norm(loc=0.25, scale=0.025)",
+        "bounds": {"loc": (0.0, 1.0), "scale": (0.001, 0.1)},
+    }
+}
+
+graph = DistGraph(config)
+bounds = graph.get_bounds("wall_thickness")
+# {"loc": (0.0, 1.0), "scale": (0.001, 0.1)}
+```
+
+Bounds are metadata only — no automatic clipping is performed.
