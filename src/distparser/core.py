@@ -24,6 +24,8 @@ from scipy.stats import (
     weibull_min,
 )
 
+from distparser.mapping import normalize_dist_name
+
 __all__ = [
     "DistParserError",
     "ParseError",
@@ -154,7 +156,7 @@ def parse_dist(s: str) -> Any:
     if not m:
         raise ParseError(f"Cannot parse {s!r}. Expected format: 'name(args)'.")
 
-    name = m.group(1)
+    name = normalize_dist_name(m.group(1))
     if name not in REGISTRY:
         raise UnknownDistributionError(
             f"Unknown distribution {name!r}. Registered: {', '.join(sorted(REGISTRY))}."

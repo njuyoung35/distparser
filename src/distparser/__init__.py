@@ -8,6 +8,8 @@ from distparser.core import (
     parse_dist,
     register_distribution,
 )
+from distparser.graph import DistGraph, seed, seed_context
+from distparser.mapping import DISTRIBUTION_ALIASES, normalize_dist_name
 from distparser.version import __version__
 
 __all__ = [
@@ -16,6 +18,11 @@ __all__ = [
     "ParseError",
     "UnknownDistributionError",
     "REGISTRY",
+    "DISTRIBUTION_ALIASES",
+    "normalize_dist_name",
     "parse_dist",
     "register_distribution",
+    "DistGraph",
+    "seed",
+    "seed_context",
 ]

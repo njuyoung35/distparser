@@ -10,6 +10,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 12 new built-in distributions: `gamma`, `beta`, `lognorm`, `weibull_min`, `t`, `chi2`, `f`, `pareto`, `cauchy`, `laplace`, `logistic`, `rayleigh`.
 
 ## [Unreleased]
+### Added
+- `DistGraph` class with automatic dependency resolution via topological sort.
+- Arithmetic expression evaluation via `asteval` (e.g. `"60 + 30 * uniform(0,1)"`).
+- Distribution name aliases (`normal` → `norm`, `gaussian` → `norm`, `unif` → `uniform`).
+- Seed management: global `seed()`, `seed_context()`, and per-instance `DistGraph(..., seed=...)`.
+- Bounds constraints on distribution parameters via dict config format.
 
 ## [0.1.0] - 2026-07-09
 ### Added

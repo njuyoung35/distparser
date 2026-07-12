@@ -190,6 +190,29 @@ class TestParseDistNewDistributions:
         assert d.rvs(size=3, random_state=42).shape == (3,)
 
 
+class TestParseDistAliases:
+    """Verify that distribution aliases are resolved."""
+
+    def test_normal_alias(self):
+        d = parse_dist("normal(loc=0, scale=1)")
+        assert abs(d.kwds["loc"] - 0.0) < 1e-12
+
+    def test_gaussian_alias(self):
+        d = parse_dist("gaussian(loc=5, scale=2)")
+        assert abs(d.kwds["loc"] - 5.0) < 1e-12
+
+    def test_unif_alias(self):
+        d = parse_dist("unif(0, 1)")
+        assert abs(d.kwds["loc"] - 0.0) < 1e-12
+
+    def test_unknown_distribution_with_alias_message(self):
+        # Even with normalize, unknown names still raise UnknownDistributionError
+        from distparser.core import UnknownDistributionError
+
+        with pytest.raises(UnknownDistributionError):
+            parse_dist("not_an_alias(0, 1)")
+
+
 # ---------------------------------------------------------------------------
 # parse_dist – error cases
 # ---------------------------------------------------------------------------
