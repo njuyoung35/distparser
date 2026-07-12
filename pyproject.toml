@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "distparser"
-version = "0.3.0"
+version = "0.3.1"
 description = "Parse function-call strings into frozen scipy.stats distributions"
 readme = "README.md"
 license = {text = "MIT"}
