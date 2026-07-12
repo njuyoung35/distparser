@@ -20,7 +20,7 @@ print(result["measurement"])  # 5.0 + sample from N(0, 0.1)
 - **15 built-in distributions**: full scipy.stats coverage
 - **Distribution aliases**: `normal` → `norm`, `unif` → `uniform`
 - **Seed management**: global, context-manager, and per-instance RNG control
-- **Bounds metadata**: annotate parameters with `(min, max)` constraints
+- **Bounds clipping**: clamp sampled values with `min`/`max`/`lbound`/`rbound`
 - **Extensible**: register custom distributions at runtime
 
 ## Quick Start

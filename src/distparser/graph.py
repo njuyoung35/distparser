@@ -4,13 +4,14 @@ from __future__ import annotations
 
 import ast as _ast
 import contextlib
+import re as _re
 from typing import Any, Iterator
 
 import graphlib
 import numpy as np
 from asteval import Interpreter
 
-from distparser.core import REGISTRY, ParseError
+from distparser.core import REGISTRY, ParseError, _split_args
 
 # ---------------------------------------------------------------------------
 # Seed management
@@ -57,6 +58,9 @@ def _get_current_rng() -> np.random.Generator:
 # Distribution sampler factory
 # ---------------------------------------------------------------------------
 
+
+_BOUND_KEYS = frozenset({"min", "max", "lbound", "rbound"})
+_NAME_RE = _re.compile(r"^([a-zA-Z_][a-zA-Z0-9_]*)\s*\((.*)\)$")
 # Math constants and functions exposed in expressions
 _MATH_SYMBOLS: dict[str, Any] = {
     "sin": np.sin,
@@ -74,7 +78,7 @@ _MATH_SYMBOLS: dict[str, Any] = {
 
 def _make_dist_samplers(rng: np.random.Generator) -> dict[str, Any]:
     """Build a dict mapping each registered distribution name to a callable
-    sampler that returns a single ``.rvs()`` sample."""
+    sampler that returns a single ``.rvs()`` sample, clipped to bounds."""
     samplers: dict[str, Any] = {}
     for name, entry in REGISTRY.items():
         dist_class = entry["class"]
@@ -87,12 +91,27 @@ def _make_dist_samplers(rng: np.random.Generator) -> dict[str, Any]:
             _rng: np.random.Generator = rng,
             **kwargs: Any,
         ) -> Any:
+            # Separate bound kwargs from distribution kwargs
+            bounds: dict[str, float] = {}
+            dist_kwargs: dict[str, Any] = {}
+            for k, v in kwargs.items():
+                if k in _BOUND_KEYS:
+                    bounds[k] = float(v)
+                else:
+                    dist_kwargs[k] = v
+
             params: dict[str, Any] = {}
             for i, val in enumerate(args):
                 if i < len(_po):
                     params[_po[i]] = val
-            params.update(kwargs)
-            return _dc(**params).rvs(random_state=_rng)
+            params.update(dist_kwargs)
+
+            value = float(_dc(**params).rvs(random_state=_rng))
+
+            # Clip to bounds
+            lb = bounds.get("min", bounds.get("lbound", -float("inf")))
+            ub = bounds.get("max", bounds.get("rbound", float("inf")))
+            return float(np.clip(value, lb, ub))
 
         samplers[name] = _sampler
     return samplers
@@ -124,7 +143,7 @@ class DistGraph:
         self._raw_config = config
         self._rng = np.random.default_rng(seed) if seed is not None else None
         self._resolved: dict[str, Any] = {}
-        self._bounds: dict[str, dict[str, tuple[float, float]]] = {}
+        self._bounds: dict[str, dict[str, float]] = {}
 
         # Parse config into dist expressions + bounds
         self._dists: dict[str, Any] = {}
@@ -139,17 +158,35 @@ class DistGraph:
 
     def _parse_config(self) -> None:
         for key, value in self._raw_config.items():
-            if isinstance(value, dict):
-                if "dist" not in value:
-                    raise ParseError(
-                        f"Config key {key!r} is a dict but missing required "
-                        f"'dist' key.  Use 'dist' for the expression string."
-                    )
-                self._dists[key] = value["dist"]
-                if "bounds" in value:
-                    self._bounds[key] = value["bounds"]
+            if isinstance(value, str):
+                self._dists[key] = value
+                self._bounds[key] = self._extract_bounds(value)
             else:
                 self._dists[key] = value
+
+    # ------------------------------------------------------------------
+    # Bound extraction
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    def _extract_bounds(expr: str) -> dict[str, float]:
+        """Extract bound keyword args (min/max/lbound/rbound) from an expression."""
+        m = _NAME_RE.match(expr.strip())
+        if not m:
+            return {}
+        args_str = m.group(2)
+        bounds: dict[str, float] = {}
+        for arg in _split_args(args_str):
+            arg = arg.strip()
+            if "=" in arg:
+                key, val_str = arg.split("=", 1)
+                key = key.strip()
+                if key in _BOUND_KEYS:
+                    try:
+                        bounds[key] = float(_ast.literal_eval(val_str.strip()))
+                    except (ValueError, SyntaxError):
+                        pass
+        return bounds
 
     # ------------------------------------------------------------------
     # Dependency resolution
@@ -257,9 +294,10 @@ class DistGraph:
     def keys(self) -> Any:
         return self._dists.keys()
 
-    def get_bounds(self, key: str) -> dict[str, tuple[float, float]] | None:
+    def get_bounds(self, key: str) -> dict[str, float] | None:
         """Return the bounds dict for *key*, or ``None`` if no bounds set."""
-        return self._bounds.get(key)
+        b = self._bounds.get(key)
+        return b if b else None
 
     @property
     def order(self) -> list[str]:

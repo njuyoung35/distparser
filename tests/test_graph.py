@@ -158,45 +158,45 @@ class TestSeedManagement:
 
 
 class TestDistGraphBounds:
-    def test_bounds_dict_format(self):
-        g = DistGraph(
-            {
-                "wall": {
-                    "dist": "norm(loc=0.25, scale=0.025)",
-                    "bounds": {"loc": (0.0, 1.0), "scale": (0.001, 0.1)},
-                }
-            }
-        )
+    def test_bounds_in_expression(self):
+        g = DistGraph({"x": "uniform(0, 1, min=0.1, max=0.9)"}, seed=42)
         result = g.resolve_all()
-        assert abs(result["wall"] - 0.25) < 0.2
+        # Clipped to [0.1, 0.9]
+        assert 0.1 <= result["x"] <= 0.9
 
     def test_get_bounds(self):
-        g = DistGraph({"x": {"dist": "uniform(0, 1)", "bounds": {"loc": (-1, 2)}}})
+        g = DistGraph({"x": "uniform(0, 1, min=0, max=2)"})
         bounds = g.get_bounds("x")
-        assert bounds == {"loc": (-1, 2)}
+        assert bounds == {"min": 0.0, "max": 2.0}
+
+    def test_get_bounds_lbound_rbound(self):
+        g = DistGraph({"x": "norm(0, 1, lbound=-1, rbound=1)"})
+        bounds = g.get_bounds("x")
+        assert bounds == {"lbound": -1.0, "rbound": 1.0}
 
     def test_get_bounds_none(self):
         g = DistGraph({"x": "uniform(0, 1)"})
         assert g.get_bounds("x") is None
 
-    def test_missing_dist_key_raises(self):
-        with pytest.raises(ParseError, match="missing required 'dist'"):
-            DistGraph({"x": {"bounds": {"loc": (0, 1)}}})
-
-    def test_bounds_not_used_for_sampling(self):
-        # bounds are metadata only — sampling should still work
-        g = DistGraph(
-            {
-                "x": {
-                    "dist": "norm(loc=100, scale=0.01)",
-                    "bounds": {"loc": (0.0, 1.0)},
-                }
-            },
-            seed=42,
-        )
+    def test_bounds_clip_sampling(self):
+        # Bounds ARE applied as clipping — value should be clamped
+        g = DistGraph({"x": "norm(loc=100, scale=0.01, max=50)"}, seed=42)
         result = g.resolve_all()
-        # Value is near loc=100, not clipped to bounds (0, 1)
-        assert abs(result["x"] - 100.0) < 1.0
+        assert result["x"] <= 50.0
+
+    def test_min_alternative(self):
+        g = DistGraph({"x": "uniform(0, 1, min=-10, max=-5)"}, seed=42)
+        result = g.resolve_all()
+        # Clipped to [-10, -5] — tightly constrained
+        assert -10 <= result["x"] <= -5
+
+    def test_nonliteral_bound_ignored_in_extract(self):
+        # min=a is not a literal — _extract_bounds ignores it gracefully
+        g = DistGraph({"a": 0.5, "x": "uniform(0, 1, min=a)"})
+        assert g.get_bounds("x") is None  # not a literal → not extracted
+        # But sampler still clips since 'a' is resolved as a variable
+        result = g.resolve_all()
+        assert result["x"] >= 0.5
 
 
 # ---------------------------------------------------------------------------

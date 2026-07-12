@@ -135,19 +135,23 @@ Priority: per‑instance > context manager > global.
 
 ## Bounds Constraints
 
-Annotate distribution parameters with physical limits:
+Specify output bounds directly in the expression string using `min`/`max` or
+`lbound`/`rbound` keyword arguments.  The sampled value is automatically
+clipped to the given range.
 
 ```python
+from distparser import DistGraph
+
 config = {
-    "wall_thickness": {
-        "dist": "norm(loc=0.25, scale=0.025)",
-        "bounds": {"loc": (0.0, 1.0), "scale": (0.001, 0.1)},
-    }
+    "wall_thickness": "norm(loc=0.25, scale=0.025, min=0.0, max=1.0)",
 }
 
-graph = DistGraph(config)
+graph = DistGraph(config, seed=42)
+result = graph.resolve_all()
+print(result["wall_thickness"])  # clipped to [0.0, 1.0]
+
 bounds = graph.get_bounds("wall_thickness")
-# {"loc": (0.0, 1.0), "scale": (0.001, 0.1)}
+print(bounds)  # {"min": 0.0, "max": 1.0}
 ```
 
-Bounds are metadata only — no automatic clipping is performed.
+Bounds are applied as a final clip after sampling.

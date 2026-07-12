@@ -26,6 +26,8 @@ from scipy.stats import (
 
 from distparser.mapping import normalize_dist_name
 
+_BOUND_KEYS = frozenset({"min", "max", "lbound", "rbound"})
+
 __all__ = [
     "DistParserError",
     "ParseError",
@@ -194,6 +196,10 @@ def parse_dist(s: str) -> Any:
         params[param_order[i]] = value
 
     params.update(keyword)
+
+    # Strip bound keys before passing to scipy
+    for bk in _BOUND_KEYS:
+        params.pop(bk, None)
 
     return dist_class(**params)
 

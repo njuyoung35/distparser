@@ -46,7 +46,7 @@ print(result["measurement"])  # 5.0 + sample from N(0, 0.1)
 - **DistGraph** — automatic dependency resolution via topological sort
 - **Arithmetic expressions** — `"60 + 30 * uniform(0, 1)"` with `sin`, `cos`, `exp`, `sqrt`, `pi` and more
 - **Seed management** — global `seed()`, context manager `seed_context()`, per-instance `DistGraph(seed=...)`
-- **Bounds constraints** — annotate parameters with physical limits for downstream validation
+- **Bounds clipping** — clamp sampled values with `min`/`max` or `lbound`/`rbound`
 - **Extensible registry** — register custom distributions at runtime
 
 ## Docs

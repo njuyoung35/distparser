@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.2] - 2026-07-12
+### Changed
+- **Breaking**: Bounds are now specified as flat keyword arguments (`min`/`max`/`lbound`/`rbound`)
+  in the expression string instead of nested dicts. Values are clipped after sampling.
+- Removed nested dict config format (`{"dist": ..., "bounds": ...}`).
+
 ## [0.3.1] - 2026-07-12
 ### Changed
 - Updated README and documentation to reflect v0.3.0 features (DistGraph, aliases, seeds, bounds).

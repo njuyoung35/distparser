@@ -213,6 +213,17 @@ class TestParseDistAliases:
             parse_dist("not_an_alias(0, 1)")
 
 
+class TestParseDistBounds:
+    """Bound keys are stripped before passing to scipy."""
+
+    def test_bound_keys_are_stripped(self):
+        d = parse_dist("norm(loc=0, scale=1, min=-2, max=2)")
+        assert abs(d.kwds["loc"] - 0.0) < 1e-12
+        assert abs(d.kwds["scale"] - 1.0) < 1e-12
+        assert "min" not in d.kwds
+        assert "max" not in d.kwds
+
+
 # ---------------------------------------------------------------------------
 # parse_dist – error cases
 # ---------------------------------------------------------------------------
