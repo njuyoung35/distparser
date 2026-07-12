@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.1] - 2026-07-12
+### Changed
+- Updated README and documentation to reflect v0.3.0 features (DistGraph, aliases, seeds, bounds).
+- Fixed development links to use GitHub URLs instead of local paths.
+
 ## [0.3.0] - 2026-07-12
 ### Added
 - `DistGraph` class with automatic dependency resolution via topological sort.
