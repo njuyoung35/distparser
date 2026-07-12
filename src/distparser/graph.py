@@ -86,7 +86,7 @@ def _make_dist_samplers(rng: np.random.Generator) -> dict[str, Any]:
             _po: list[str] = param_order,
             _rng: np.random.Generator = rng,
             **kwargs: Any,
-        ) -> float:
+        ) -> Any:
             params: dict[str, Any] = {}
             for i, val in enumerate(args):
                 if i < len(_po):

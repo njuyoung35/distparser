@@ -52,10 +52,14 @@ testpaths = ["tests"]
 addopts = "-v --cov=src/distparser --cov-report=term-missing"
 
 [tool.mypy]
-python_version = "3.8"
+python_version = "3.12"
 strict = true
 warn_return_any = true
 warn_unused_configs = true
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = ["scipy.stats", "asteval"]
 ignore_missing_imports = true
 
 [tool.ruff]
